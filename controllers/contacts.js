@@ -3,12 +3,12 @@ const Contacts = require('../model/contact')
 const get = async (req, res, next) => {
   try {
     const userId = req.user.id
-    const contacts = await Contacts.listContacts(userId)
+    const contacts = await Contacts.listContacts(userId, req.query)
     return res.json({
       status: 'success',
       code: 200,
       data: {
-        contacts,
+        ...contacts,
       },
     })
   } catch (e) {
@@ -43,7 +43,7 @@ const getById = async (req, res, next) => {
 const post = async (req, res, next) => {
   try {
     const userId = req.user.id
-    const contact = await Contacts.addContact(req.body, userId)
+    const contact = await Contacts.addContact({ ...req.body, owner: userId })
     if (contact) {
       return res.json({
         status: 'success',

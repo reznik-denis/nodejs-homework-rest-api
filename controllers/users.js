@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken')
 const Users = require('../model/users')
 const { HttpCode } = require('../helpers/constants')
-
+const bcrypt = require('bcryptjs')
 require('dotenv').config()
 const SECRET_KEY = process.env.JWT_SECRET
 
@@ -36,7 +36,8 @@ const login = async (req, res, next) => {
   try {
     const { email, password } = req.body
     const user = await Users.findByEmail(email)
-    if (!user || !user.validPassword(password)) {
+    const isValidPassword = await bcrypt.compare(password, user.password)
+    if (!user || !isValidPassword) {
       return res.status(HttpCode.UNAUTHORIZED).json({
         status: 'error',
         code: HttpCode.UNAUTHORIZED,
