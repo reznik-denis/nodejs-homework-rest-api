@@ -1,12 +1,28 @@
 const Contact = require('./schemas/contact')
 
-const listContacts = async () => {
-  const results = await Contact.find({})
-  return results
+const listContacts = async (userId, { sortBy, sortByDesc, filter, limit = '5', offset = '0' }) => {
+  const results = await Contact.paginate({ owner: userId }, {
+    limit,
+    offset,
+    sort: {
+      ...(sortBy ? { [`${sortBy}`]: 1 } : {}),
+      ...(sortByDesc ? { [`${sortByDesc}`]: -1 } : {})
+    },
+    select: filter ? filter.split('|').join(' ') : '',
+    populate: {
+      path: 'owner',
+      select: 'name email subscription -_id',
+    }
+  })
+  const { docs: contacts, totalDocs: total } = results
+  return { total: total.toString(), limit, offset, contacts }
 }
 
-const getContactById = async (contactId) => {
-  const result = await Contact.findOne({ _id: contactId })
+const getContactById = async (contactId, userId) => {
+  const result = await Contact.findOne({ _id: contactId, owner: userId }).populate({
+    path: 'owner',
+    select: 'name email subscription -_id',
+  })
   return result
 }
 
@@ -15,13 +31,13 @@ const addContact = async (body) => {
   return result
 }
 
-const updateContact = async (contactId, body) => {
-  const result = await Contact.findByIdAndUpdate({ _id: contactId }, { ...body }, { new: true },)
+const updateContact = async (contactId, body, userId) => {
+  const result = await Contact.findOneAndUpdate({ _id: contactId, owner: userId }, { ...body }, { new: true },)
   return result
 }
 
-const removeContact = async (contactId) => {
-  const result = await Contact.findByIdAndRemove({ _id: contactId })
+const removeContact = async (contactId, userId) => {
+  const result = await Contact.findOneAndRemove({ _id: contactId, owner: userId })
   return result
 }
 
