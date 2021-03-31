@@ -1,6 +1,7 @@
 const express = require('express')
 const logger = require('morgan')
 const cors = require('cors')
+const path = require('path')
 const helmet = require('helmet')
 const rateLimit = require('express-rate-limit')
 const { HttpCode } = require('./helpers/constants')
@@ -9,6 +10,9 @@ const contactsRouter = require('./routes/api/contacts')
 const usersRouter = require('./routes/api/users')
 
 const app = express()
+require('dotenv').config()
+const AVATARS_OF_USERS = process.env.AVATARS_OF_USERS
+app.use(express.static(path.join(__dirname, AVATARS_OF_USERS)))
 
 const formatsLogger = app.get('env') === 'development' ? 'dev' : 'short'
 
@@ -19,7 +23,7 @@ app.use(express.json({ limit: 10000 }))
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 1,
+  max: 100,
   handler: (req, res, next) => {
     return res.status(HttpCode.BAD_REQUEST).json({
       status: 'error',
