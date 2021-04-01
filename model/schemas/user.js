@@ -1,6 +1,7 @@
 const mongoose = require('mongoose')
 const { Schema, model } = mongoose
 const bcrypt = require('bcryptjs')
+const gravatar = require('gravatar')
 const SOLT_WORK_FACTOR = 8
 const { Sub } = require('../../helpers/constants')
 
@@ -22,6 +23,12 @@ const userSchema = new Schema({
   password: {
     type: String,
     required: [true, 'Password required'],
+  },
+  avatar: {
+    type: String,
+    default: function () {
+      return gravatar.url(this.email, { s: '250' }, true)
+    }
   },
   subscription: {
     type: String,
